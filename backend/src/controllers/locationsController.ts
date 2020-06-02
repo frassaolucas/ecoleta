@@ -2,6 +2,29 @@ import { Request, Response, response } from "express";
 import knex from "../database/connection";
 
 class LocationsController {
+  async index(req: Request, res: Response) {
+    const { city, uf, items } = req.query;
+
+    const parsedItems = String(items)
+      .split(",")
+      .map((item) => Number(item.trim()));
+
+    const locations = await knex("locations")
+      .join(
+        "locations_items",
+        "locations.id",
+        "=",
+        "locations_items.location_id"
+      )
+      .whereIn("locations_items.item_id", parsedItems)
+      .where("city", String(city))
+      .where("uf", String(uf))
+      .distinct()
+      .select("locations.*");
+
+    return res.json(locations);
+  }
+
   async show(req: Request, res: Response) {
     const { id } = req.params;
 
@@ -56,6 +79,8 @@ class LocationsController {
     });
 
     await trx("locations_items").insert(locationItems);
+
+    await trx.commit();
 
     return res.json({
       id: location_id,
