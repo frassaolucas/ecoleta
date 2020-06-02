@@ -10,5 +10,6 @@ const itemsController = new ItemsController();
 routes.get("/items", itemsController.index);
 
 routes.post("/locations", locationsController.create);
+routes.get("/locations/:id", locationsController.show);
 
 export default routes;
