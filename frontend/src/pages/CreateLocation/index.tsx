@@ -15,6 +15,11 @@ const CreatePoint = () => {
   const [ufs, setUfs] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
 
+  const [initialLocation, setInitialLocation] = useState<[number, number]>([
+    0,
+    0,
+  ]);
+
   const [selectedUf, setSelectedUf] = useState<string>('0');
   const [selectedCity, setSelectedCity] = useState<string>('0');
   const [selectedLocation, setSelectedLocation] = useState<[number, number]>([
@@ -35,6 +40,14 @@ const CreatePoint = () => {
   interface IBGECityResponse {
     nome: string;
   }
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+
+      setInitialLocation([latitude, longitude]);
+    });
+  }, []);
 
   useEffect(() => {
     api.get('items').then((response) => {
@@ -131,11 +144,7 @@ const CreatePoint = () => {
             <span>Selecione o endereço no mapa</span>
           </legend>
 
-          <Map
-            center={[-27.6094303, -48.4687409]}
-            zoom={15}
-            onClick={handleMapClick}
-          >
+          <Map center={initialLocation} zoom={15} onClick={handleMapClick}>
             <TileLayer
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
