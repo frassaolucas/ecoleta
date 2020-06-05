@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Feather as Icon } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -30,11 +30,20 @@ interface Location {
   longitude: number;
 }
 
+interface Params {
+  uf: string;
+  city: string;
+}
+
 const Locations = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
+
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const routeParams = route.params as Params;
 
   const [initialPosition, setInitialPosition] = useState<[number, number]>([
     0,
@@ -73,16 +82,16 @@ const Locations = () => {
     api
       .get("locations", {
         params: {
-          city: "Florianópolis",
-          uf: "SC",
-          items: [1, 2],
+          city: routeParams.city,
+          uf: routeParams.uf,
+          items: selectedItems,
         },
       })
       .then((response) => {
         console.log(response.data);
         setLocations(response.data);
       });
-  }, []);
+  }, [selectedItems]);
 
   function handleNavigateBack() {
     navigation.goBack();
