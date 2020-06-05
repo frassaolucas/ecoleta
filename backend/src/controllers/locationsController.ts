@@ -22,7 +22,14 @@ class LocationsController {
       .distinct()
       .select("locations.*");
 
-    return res.json(locations);
+    const serializedLocations = locations.map((location) => {
+      return {
+        ...location,
+        image_url: `http://192.168.0.5:3333/uploads/${location.image}`,
+      };
+    });
+
+    return res.json(serializedLocations);
   }
 
   async show(req: Request, res: Response) {
@@ -34,12 +41,17 @@ class LocationsController {
       return response.status(400).json({ message: "Location not found." });
     }
 
+    const serializedLocation = {
+      ...location,
+      image_url: `http://192.168.0.5:3333/uploads/${location.image}`,
+    };
+
     const items = await knex("items")
       .join("locations_items", "items.id", "=", "locations_items.item_id")
       .where("locations_items.location_id", id)
       .select("items.title");
 
-    return res.json({ location, items });
+    return res.json({ location: serializedLocation, items });
   }
 
   async create(req: Request, res: Response) {
@@ -57,8 +69,7 @@ class LocationsController {
     const trx = await knex.transaction();
 
     const location = {
-      image:
-        "https://images.unsplash.com/photo-1556767576-5ec41e3239ea?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+      image: req.file.filename,
       name,
       email,
       whatsapp,
@@ -72,12 +83,15 @@ class LocationsController {
 
     const location_id = insertedIds[0];
 
-    const locationItems = items.map((item_id: number) => {
-      return {
-        item_id,
-        location_id,
-      };
-    });
+    const locationItems = items
+      .split(",")
+      .map((item: string) => Number(item.trim()))
+      .map((item_id: number) => {
+        return {
+          item_id,
+          location_id,
+        };
+      });
 
     await trx("locations_items").insert(locationItems);
 
