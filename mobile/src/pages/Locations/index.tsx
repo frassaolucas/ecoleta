@@ -89,7 +89,6 @@ const Locations = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
         setLocations(response.data);
       });
   }, [selectedItems]);
